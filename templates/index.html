@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Generador de Diagramas de Clases en Python</title>
+
+    <!-- Tailwind + fuentes -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+
+    <!-- Configuración de Tailwind (colores iguales a tu versión moderna) -->
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            DEFAULT: "#4F46E5",
+                            hover: "#4338CA"
+                        },
+                        "background-light": "#f8fafc",
+                        "background-dark": "#191919"
+                    },
+                    fontFamily: {
+                        display: "Space Grotesk"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px"
+                    }
+                }
+            }
+        };
+    </script>
+
+    <style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+    </style>
+    <script src="https://unpkg.com/viz.js@2.1.2/viz.js"></script>
+    <script src="https://unpkg.com/viz.js@2.1.2/full.render.js"></script>
+</head>
+
+<body class="bg-background-light text-neutral-800">
+<div class="relative flex min-h-screen w-full flex-col font-display overflow-hidden">
+    <header class="flex items-center justify-center border-b border-neutral-200 bg-white px-6 py-4">
+        <h1 class="text-neutral-900 text-xl md:text-2xl font-bold leading-tight">Generador de Diagramas de Clases</h1>
+    </header>
+
+    <main class="flex-1 grid grid-cols-1 md:grid-cols-3 min-h-0 bg-neutral-50">
+        <div class="flex flex-col gap-4 border-r border-neutral-200 p-6 overflow-y-auto">
+            <h2 class="text-neutral-900 text-lg font-bold leading-tight">Código Python</h2>
+            <form action="/" method="post" class="flex flex-col flex-1">
+                <textarea name="code" required
+                    class="form-input flex-1 w-full resize-none overflow-auto rounded-lg text-neutral-800 focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-neutral-300 bg-white focus:border-primary h-full placeholder:text-neutral-500 p-4 text-sm font-mono"
+                    placeholder="Pega aquí tu código Python...">{{ code }}</textarea>
+
+                <button type="submit"
+                    class="mt-4 rounded-lg bg-primary hover:bg-primary-hover text-white py-2 font-bold transition-colors">
+                    Generar Diagrama
+                </button>
+
+                {% if error %}
+                    <p class="text-red-600 mt-2 font-medium">{{ error }}</p>
+                {% endif %}
+            </form>
+        </div>
+        <div class="flex flex-col gap-4 border-r border-neutral-200 p-6 overflow-y-auto">
+            <h2 class="text-neutral-900 text-lg font-bold leading-tight">Archivo generado (.dot)</h2>
+            <div class="flex-1 rounded-lg border border-neutral-300 bg-white p-4 text-sm font-mono text-neutral-700 overflow-auto">
+                {% if dot_content %}
+                    <pre>{{ dot_content }}</pre>
+                {% else %}
+                    <p class="text-neutral-500">Tu archivo .dot aparecerá aquí.</p>
+                {% endif %}
+            </div>
+        </div>
+        <div class="flex flex-col gap-4 p-6 overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <h2 class="text-neutral-900 text-lg font-bold leading-tight">Diagrama de Clases</h2>
+                <div class="flex items-center gap-1">
+                    <button id="zoomIn" class="flex items-center justify-center size-8 rounded-md bg-neutral-200/50 hover:bg-neutral-200 text-neutral-600 transition-colors">
+                        <span class="material-symbols-outlined text-xl">zoom_in</span>
+                    </button>
+                    <button id="zoomOut" class="flex items-center justify-center size-8 rounded-md bg-neutral-200/50 hover:bg-neutral-200 text-neutral-600 transition-colors">
+                        <span class="material-symbols-outlined text-xl">zoom_out</span>
+                    </button>
+                    <button id="resetZoom" class="flex items-center justify-center size-8 rounded-md bg-neutral-200/50 hover:bg-neutral-200 text-neutral-600 transition-colors">
+                        <span class="material-symbols-outlined text-xl">restart_alt</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="diagram" class="flex-1 flex items-center justify-center rounded-lg border border-neutral-200 bg-white p-4">
+                {% if dot_content %}
+                    <!-- Diagrama renderizado aquí -->
+                {% else %}
+                    <div class="flex flex-col items-center gap-3 text-center">
+                        <span class="material-symbols-outlined text-5xl text-primary">schema</span>
+                        <p class="text-neutral-900 text-lg font-medium">Tu diagrama aparecerá aquí.</p>
+                        <p class="text-neutral-500 text-sm">Pega tu código y presiona "Generar Diagrama".</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </main>
+</div>
+
+{% if dot_content %}
+<script>
+    const dot = {{ dot_content | tojson }};
+    const viz = new Viz();
+    const diagramDiv = document.getElementById("diagram");
+    let currentZoom = 1.0;
+    function renderDiagram() {
+        viz.renderSVGElement(dot)
+            .then(svg => {
+                svg.style.transform = `scale(${currentZoom})`;
+                svg.style.transformOrigin = "center center";
+                diagramDiv.innerHTML = "";
+                diagramDiv.appendChild(svg);
+            })
+            .catch(err => {
+                console.error(err);
+                diagramDiv.innerText = "Error al renderizar el diagrama.";
+            });
+    }
+    renderDiagram();
+    document.getElementById("zoomIn").addEventListener("click", () => {
+        currentZoom += 0.1;
+        renderDiagram();
+    });
+    document.getElementById("zoomOut").addEventListener("click", () => {
+        currentZoom = Math.max(0.1, currentZoom - 0.1);
+        renderDiagram();
+    });
+    document.getElementById("resetZoom").addEventListener("click", () => {
+        currentZoom = 1.0;
+        renderDiagram();
+    });
+</script>
+{% endif %}
+</body>
+</html>
