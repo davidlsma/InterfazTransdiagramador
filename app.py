@@ -16,7 +16,7 @@ def index():
             codigopython = request.form.get('code', '')
             if not codigopython.strip():
                 raise Exception("Proporciona código Python en el campo de texto.")
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.py', mode='w', encoding='utf-8', dir="C:\\Users\\USUARIO\\Desktop\\Transdiagramdor\\archivos" ) as temp_py: # dir lleva la ruta donde se guardaran los archivos temporales
+            with tempfile.NamedTemporaryFile(delete=False, suffix='.py', mode='w', encoding='utf-8', dir="C:\\Users\\Usuario\\Documents\\LCC\\Compiladores\\Transdiagramador\\archivos" ) as temp_py: # dir lleva la ruta donde se guardaran los archivos temporales
                 temp_py.write(codigopython)
                 ruta_py = temp_py.name
             ruta_dot = Compilar(ruta_py)
