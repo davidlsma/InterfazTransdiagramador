@@ -129,8 +129,34 @@
                 </button>
 
                 {% if error %}
-                    <p class="text-red-600 mt-2 font-medium">{{ error }}</p>
-                {% endif %}
+                    <div id="toast"
+                        class="fixed top-6 left-1/2 -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg shadow-lg z-[9999]
+                                animate-[fadeIn_0.3s_ease-out]">
+                        <span class="font-semibold">⚠ Error:</span> {{ error }}
+                    </div>
+
+                    <style>
+                    @keyframes fadeIn {
+                        from { opacity: 0; transform: translate(-50%, -10px); }
+                        to   { opacity: 1; transform: translate(-50%, 0); }
+                    }
+                    @keyframes fadeOut {
+                        from { opacity: 1; transform: translate(-50%, 0); }
+                        to   { opacity: 0; transform: translate(-50%, -10px); }
+                    }
+                    </style>
+
+                    <script>
+                    // El toast se desvanece a los 4 segundos
+                    setTimeout(() => {
+                        const t = document.getElementById("toast");
+                        if (t) {
+                            t.style.animation = "fadeOut 0.4s forwards";
+                            setTimeout(() => t.remove(), 400);
+                        }
+                    }, 4000);
+                    </script>
+                    {% endif %}
             </form>
         </div>
         <div class="flex flex-col gap-4 p-6 overflow-y-auto">

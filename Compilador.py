@@ -11,7 +11,7 @@ def Compilar(ruta_py, ruta_dot_salida=None):
     resultado = subprocess.run(args, capture_output=True, text=True)
 
     if resultado.returncode != 0:
-        raise Exception(f"Error en backend: {resultado.stderr}")
+        raise Exception(f"Error en backend: {resultado.stdout.strip()}")
     
     output_lines = resultado.stdout.strip().split('\n')
     ruta_dot_generado = output_lines[-1] if output_lines else None

@@ -22,9 +22,10 @@ def index():
             ruta_dot = Compilar(ruta_py)
             with open(ruta_dot, 'r', encoding='utf-8') as f:
                 dot_contenido = f.read()
+            #return render_template('index.html', code=codigopython, dot_content=dot_contenido, error=error)
         except Exception as e:
             error = str(e)
-            flash(error)
+            return render_template('index.html', code=codigopython, dot_content=dot_contenido, error=error)
         finally:
             try:
                 os.remove(ruta_py)
